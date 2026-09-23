@@ -1,10 +1,11 @@
 # SnapDesk: Windows x64 build of the `snapdesk` branch.
 #
-# One client build, packed three times into single-file executables, each
+# One client build, packed once per profile into single-file executables, each
 # carrying a different signed config (res/snapdesk/<profile>.txt → custom.txt):
 #   SnapDesk-Destek      customer one-off support (incoming only, no install)
 #   SnapDesk-Teknisyen   technician (outgoing only)
 #   SnapDesk-Beheer      unattended access on managed customer PCs
+#   SnapDesk-Tam         two-way client (AnyDesk-style) for staff and partners
 #
 # Build steps mirror the x64 leg of flutter-build.yml (build-for-windows-flutter);
 # keep them in sync when merging upstream. Configs are produced with
@@ -170,7 +171,7 @@ jobs:
           pip3 install -r libs/portable/requirements.txt
           mkdir -p ./SnapDeskOutput
           # profile file → published name
-          for pair in support:Destek technician:Teknisyen unattended:Beheer; do
+          for pair in support:Destek technician:Teknisyen unattended:Beheer full:Tam; do
             profile="${pair%%:*}"; label="${pair##*:}"
             dist="./dist-$profile"
             rm -rf "$dist"
