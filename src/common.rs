@@ -2347,6 +2347,7 @@ pub fn load_custom_client() {
     }
     let Some(path) = std::env::current_exe().map_or(None, |x| x.parent().map(|x| x.to_path_buf()))
     else {
+        load_embedded_custom_client();
         return;
     };
     #[cfg(target_os = "macos")]
@@ -2358,6 +2359,20 @@ pub fn load_custom_client() {
             return;
         };
         read_custom_client(&data.trim());
+        return;
+    }
+    load_embedded_custom_client();
+}
+
+// SnapDesk: a signed config baked in at build time
+// (SNAPDESK_CUSTOM_CLIENT=<custom.txt contents> cargo build ...), used when no
+// custom.txt sits next to the executable. Covers single-file builds and
+// Android, where there is no directory to drop custom.txt into.
+fn load_embedded_custom_client() {
+    if let Some(data) = option_env!("SNAPDESK_CUSTOM_CLIENT") {
+        if !data.trim().is_empty() {
+            read_custom_client(data.trim());
+        }
     }
 }
 
@@ -2442,7 +2457,9 @@ pub fn read_custom_client(config: &str) {
         log::error!("Failed to decode custom client config");
         return;
     };
-    const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM=";
+    // SnapDesk config-signing public key (snapdesk-infra/tools/snapdesk_config.py);
+    // upstream RustDesk's key is intentionally not accepted.
+    const KEY: &str = "+y8USD+xzX30yKdDDFwtv7+ClMYQc7R2zFBm99Emag8=";
     let Some(pk) = get_rs_pk(KEY) else {
         log::error!("Failed to parse public key of custom client");
         return;
